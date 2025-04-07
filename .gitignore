@@ -1,4 +1,7 @@
 *.pptx
+*.png
 
 /venv
 /train_data
+/trimed_data
+/char_images

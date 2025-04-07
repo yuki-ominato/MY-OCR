@@ -36,7 +36,7 @@ char_grid = [
 ]
 
 # 対象文字
-target_chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!?"
+target_chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz?"
 
 # 文字位置マッピング
 char_positions = {}
@@ -49,13 +49,28 @@ for row in range(len(char_grid)):
 
 # CSV出力準備
 csv_rows = []
-csv_path = "character_data.csv"
+csv_path = "train.csv"
+
+# 38行38列のchar_imgを作成
+char_img = np.zeros((cell_h, cell_w+3), dtype=np.uint8)
+offset_x = 6
 
 # 切り出しと保存ループ
 for ch, (row, col) in char_positions.items():
     y1, y2 = row * cell_h, (row + 1) * cell_h
-    x1, x2 = max(col * cell_w - 6, 0), min((col + 1) * cell_w - 6, 566)
-    char_img = img_np[y1:y2, x1:x2]
+    x1, x2 = max(col * cell_w - offset_x, 0), min((col + 1) * cell_w - offset_x, 566)
+    diff_min, diff_max = col * cell_w - offset_x, ((col + 1) * cell_w - offset_x) - 566
+    for i in range(y1, y2):
+        for j in range(x1, x2):
+            if(x1==0):
+                char_img[i-y1][j-x1-diff_min] = img_np[i][j]
+            elif(x2==566):
+                char_img[i-y1][j-x1+diff_max] = img_np[i][j]
+            else:
+                char_img[i - y1][j - x1] = img_np[i][j]
+    
+    # char_img = img_np[y1:y2, x1:x2]
+    print(char_img.shape)
 
     # ファイル名"
     if ch.isupper():

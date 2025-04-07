@@ -1,50 +1,48 @@
-import pandas as pd
 import numpy as np
-import cv2
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense
-from tensorflow.keras.optimizers import Adam
-from sklearn.model_selection import train_test_split
-from tensorflow.keras.utils import to_categorical
+import pandas as pd
+from keras.models import Sequential
+from keras.layers import Dense, Flatten
+from keras.utils import to_categorical
+from PIL import Image
 
-# CSVファイルを読み込む
-df = pd.read_csv('data.csv')
+# CSVファイルの読み込み
+csv_path = 'font_data.csv'  # ←あなたのCSVファイル名に合わせて変更
+df = pd.read_csv(csv_path)
 
-# 画像を読み込んで前処理する関数
-def load_image(image_path):
-    image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
-    image = cv2.resize(image, (28, 28))  # 画像のリサイズ
-    image = image.astype('float32') / 255  # ピクセル値の正規化
-    return image
+# ラベルを数値に変換（例：A→0, B→1, ...）
+labels = sorted(df['Label'].unique())
+label_to_index = {label: i for i, label in enumerate(labels)}
+num_classes = len(labels)
 
-# 画像データとラベルのリストを作成
+# データ読み込みと整形
 images = []
-labels = []
-for index, row in df.iterrows():
-    img = load_image(row['Image Path'])
+targets = []
+
+for _, row in df.iterrows():
+    # ピクセル値を読み込んで正規化（0〜1）
+    pixel_values = np.array(list(map(int, row['Pixel Values'].split())), dtype=np.uint8)
+    size = int(np.sqrt(len(pixel_values)))  # 正方形画像を仮定
+    img = pixel_values.reshape((size, size)) / 255.0
     images.append(img)
-    labels.append(row['Label'])
+    targets.append(label_to_index[row['Label']])
 
-# 画像とラベルをnumpy配列に変換
-X = np.array(images)
-y = np.array(labels)
+x = np.array(images).reshape(-1, size, size, 1)
+y = to_categorical(targets, num_classes=num_classes)
 
-# ラベルをOne-Hot Encoding
-y = to_categorical(y)
+# モデル構築
+model = Sequential([
+    Flatten(input_shape=(size, size, 1)),
+    Dense(64, activation='relu'),
+    Dense(num_classes, activation='softmax')
+])
 
-# データセットを訓練用とテスト用に分割
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+# モデルコンパイル
+model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
 
-# モデルの定義
-model = Sequential()
-model.add(Conv2D(32, (3, 3), activation='relu', input_shape=(28, 28, 1)))
-model.add(MaxPooling2D((2, 2)))
-model.add(Flatten())
-model.add(Dense(128, activation='relu'))
-model.add(Dense(len(np.unique(y)), activation='softmax'))
+# モデル学習（少量データのためエポック少なめ）
+history = model.fit(x, y, epochs=50, batch_size=1, verbose=0)
 
-# モデルのコンパイル
-model.compile(optimizer=Adam(), loss='categorical_crossentropy', metrics=['accuracy'])
-
-# 学習の実行
-model.fit(X_train, y_train, epochs=10, validation_data=(X_test, y_test))
+# 最終結果の表示
+final_loss, final_accuracy = model.evaluate(x, y, verbose=0)
+print(f"Final Accuracy on Training Data: {final_accuracy:.4f}")
+print(f"Final Loss on Training Data: {final_loss:.4f}")
