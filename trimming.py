@@ -5,7 +5,7 @@ import numpy as np
 
 # 入力画像
 threshold = 256  # ←ここを好きな値に（例：100〜200など）
-img_rgb = Image.open("ascii_edited.png").convert("RGBA")
+img_rgb = Image.open("ascii.png").convert("RGBA")
 img = np.array(img_rgb)
 print(img.shape)
 
@@ -88,7 +88,7 @@ for ch, (row, col) in char_positions.items():
     Image.fromarray(char_img).save(image_path)
 
     # ピクセルデータをflattenしてCSV用に保存
-    pixels_flat = ",".join(str(val) for val in char_img.flatten())
+    pixels_flat = " ".join(str(val) for val in char_img.flatten())
     csv_rows.append([file_name, pixels_flat, ch])
 
 # CSVに書き出し
