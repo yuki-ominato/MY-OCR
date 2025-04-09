@@ -1,5 +1,6 @@
 *.pptx
 *.png
+*.csv
 
 /venv
 /train_data
