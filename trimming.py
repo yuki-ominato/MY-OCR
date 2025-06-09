@@ -2,6 +2,7 @@ import os
 import csv
 from PIL import Image
 import numpy as np
+import cv2
 
 # 入力画像
 threshold = 256  # ←ここを好きな値に（例：100〜200など）
@@ -14,6 +15,9 @@ print(img_np.shape)
 for i in range(img_np.shape[0]):
     for j in range(img_np.shape[1]):
         img_np[i][j] = (img[i][j][0] * 0.2126 + img[i][j][1] * 0.7152 + img[i][j][2] * 0.0722) * img[i][j][3] / 255.0
+
+# 二値化処理を追加
+_, img_np = cv2.threshold(img_np, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
 
 # 出力フォルダ
 output_folder = "char_images"
