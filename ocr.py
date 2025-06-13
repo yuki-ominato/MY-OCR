@@ -13,7 +13,7 @@ from scipy import ndimage
 import datetime
 
 # 自作OCRモデルの読み込み
-model = load_model("saved_models/font_recognition_model.keras")
+model = load_model("saved_models/ocr_model.keras")
 
 # クラスラベル
 LABELS = list("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz?")
@@ -164,7 +164,7 @@ class ScreenOCRApp:
 
             prediction = model.predict(img_array, verbose=0)
             label_index = np.argmax(prediction)
-            print(label_index)
+            # print(label_index)
             char = LABELS[label_index]
             recognized_text += char
         
